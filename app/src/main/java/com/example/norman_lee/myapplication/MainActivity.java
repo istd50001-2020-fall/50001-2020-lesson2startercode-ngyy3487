@@ -7,12 +7,16 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.math.BigDecimal;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +49,29 @@ public class MainActivity extends AppCompatActivity {
         //TODO 2.4 Display a Toast & Logcat message if the editTextValue widget contains an empty string
         //TODO 2.5 If not, calculate the units of B with the exchange rate and display it
         //TODO 2.5a See ExchangeRate class --->
+        editTextValue = findViewById(R.id.editTextValue);
+        textViewExchangeRate = findViewById(R.id.textViewExchangeRate);
+        buttonConvert = findViewById(R.id.buttonConvert);
+        textViewResult = findViewById(R.id.textViewResult);
+        buttonSetExchangeRate = findViewById(R.id.buttonSetExchangeRate);
+
+        exchangeRate = 2.95;
+
+        buttonConvert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String numbertoconvert = editTextValue.getText().toString();
+                try{
+                    ExchangeRate exchangecalc = new ExchangeRate(String.valueOf(exchangeRate));
+                    BigDecimal result = exchangecalc.calculateAmount(numbertoconvert);
+                    textViewResult.setText(String.valueOf(result));
+                }
+                catch(NumberFormatException ex){
+                    Toast.makeText(MainActivity.this,R.string.emptyedittext,Toast.LENGTH_LONG).show();
+                    Log.w("emptyedittext","Empty Edit Text");
+                }
+            }
+        });
 
 
         //TODO 3.1 Modify the Android Manifest to specify that the parent of SubActivity is MainActivity
