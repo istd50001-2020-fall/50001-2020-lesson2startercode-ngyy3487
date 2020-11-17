@@ -4,4 +4,6 @@
     <string name="set_exchange_rate">Set Exchange Rate</string>
     <string name="main_activity_name">Convert Currency</string>
     <string name="emptyedittext">Nothing to Convert</string>
+    <string name="invalidedittext">Invalid Input</string>
+    <string name="default_location">test</string>
 </resources>
