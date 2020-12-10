@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     EditText editTextValue;
     TextView textViewResult;
     TextView textViewExchangeRate;
+    ExchangeRate exchangeRateBD;
     double exchangeRate;
     public final String TAG = "Logcat";
     private SharedPreferences mPreferences;
@@ -39,56 +40,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editTextValue = findViewById(R.id.editTextValue);
-        textViewExchangeRate = findViewById(R.id.textViewExchangeRate);
         buttonConvert = findViewById(R.id.buttonConvert);
-        textViewResult = findViewById(R.id.textViewResult);
         buttonSetExchangeRate = findViewById(R.id.buttonSetExchangeRate);
+        editTextValue = findViewById(R.id.editTextValue);
+        textViewResult = findViewById(R.id.textViewResult);
+        textViewExchangeRate = findViewById(R.id.textViewExchangeRate);
 
-        //TODO 4.5 Get a reference to the sharedPreferences object
-        //TODO 4.6 Retrieve the value using the key, and set a default when there is none
         mPreferences = getSharedPreferences(sharedPrefFile,MODE_PRIVATE);
-        textViewExchangeRate.setText(mPreferences.getString(RATE_KEY,"2.95"));
-
-        //TODO 3.13 Get the intent, retrieve the values passed to it, and instantiate the ExchangeRate class
-        //TODO 3.13a See ExchangeRate class --->
-        Intent subactivity = getIntent();
-        String home = subactivity.getStringExtra("home");
-        String foreign = subactivity.getStringExtra("foreign");
-        if (home != null && foreign!= null) {
-            ExchangeRate subexchangerate = new ExchangeRate(home, foreign);
-            textViewExchangeRate.setText(subexchangerate.getExchangeRate().toString());
-        }
-        //TODO 2.1 Use findViewById to get references to the widgets in the layout
-        //TODO 2.2 Assign a default exchange rate of 2.95 to the textView
-        //TODO 2.3 Set up setOnClickListener for the Convert Button
-        //TODO 2.4 Display a Toast & Logcat message if the editTextValue widget contains an empty string
-        //TODO 2.5 If not, calculate the units of B with the exchange rate and display it
-        //TODO 2.5a See ExchangeRate class --->
-
-        exchangeRate = Double.valueOf(textViewExchangeRate.getText().toString());
+        String rate_text = mPreferences.getString(RATE_KEY,"2.95");
+        textViewExchangeRate.setText(rate_text);
 
         buttonConvert.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String numbertoconvert = editTextValue.getText().toString();
-                try{
-                    ExchangeRate exchangecalc = new ExchangeRate(String.valueOf(exchangeRate));
-                    BigDecimal result = exchangecalc.calculateAmount(numbertoconvert);
-                    textViewResult.setText(String.valueOf(result));
+                String tocalc = editTextValue.getText().toString();
+                try {
+                    Utils.checkInvalidInputs(tocalc);
+                    ExchangeRate exrate = new ExchangeRate(textViewExchangeRate.getText().toString());
+                    BigDecimal result = exrate.calculateAmount(tocalc);
+                    textViewResult.setText(result.toString());
+                } catch(NumberFormatException ex){
+                    Toast.makeText(MainActivity.this,"no input given",Toast.LENGTH_LONG);
+                    Log.e(TAG,"no input given");
+                } catch (IllegalArgumentException ex){
+                    Toast.makeText(MainActivity.this,"invalid input",Toast.LENGTH_LONG);
+                    Log.e(TAG,"invalid input");
                 }
-                catch(NumberFormatException ex){
-                    Toast.makeText(MainActivity.this,R.string.emptyedittext,Toast.LENGTH_LONG).show();
-                    Log.w("emptyedittext","Empty Edit Text");
-                }
+
             }
         });
 
-
-        //TODO 3.1 Modify the Android Manifest to specify that the parent of SubActivity is MainActivity
-        //TODO 3.2 Get a reference to the Set Exchange Rate Button
-        //TODO 3.3 Set up setOnClickListener for this
-        //TODO 3.4 Write an Explicit Intent to get to SubActivity
         buttonSetExchangeRate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,18 +78,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Intent intent = getIntent();
+        Log.i(TAG,intent.toString());
+        String home = intent.getStringExtra("home");
+        String foreign = intent.getStringExtra("foreign");
+        //if app opened for first time, home and foreign is null
+        if (home == null && foreign == null){
+            exchangeRateBD = new ExchangeRate();
+        }
+        else {
+            exchangeRateBD = new ExchangeRate(home, foreign);
+            String exchangeRateNumber = exchangeRateBD.getExchangeRate().toString();
+            textViewExchangeRate.setText(exchangeRateNumber);
+        }
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -117,12 +106,6 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    //TODO 4.1 Go to res/menu/menu_main.xml and add a menu item Set Exchange Rate
-    //TODO 4.2 In onOptionsItemSelected, add a new if-statement and code accordingly
-
-    //TODO 5.1 Go to res/menu/menu_main.xml and add a menu item Open Map App
-    //TODO 5.2 In onOptionsItemSelected, add a new if-statement
-    //TODO 5.3 code the Uri object and set up the intent
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -135,68 +118,68 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-        if (id == R.id.setexchangerate_option){
+
+        if(id == R.id.setexchangerate_option){
             Intent intent = new Intent(MainActivity.this,SubActivity.class);
             startActivity(intent);
             return true;
         }
-        if (id == R.id.openmap){
+
+        if(id == R.id.openmap){
             String location = getString(R.string.default_location);
             Uri.Builder builder = new Uri.Builder();
             builder.scheme("geo").opaquePart("0.0").appendQueryParameter("q",location);
-            Uri geolocation = builder.build();
+            Uri geoLocation = builder.build();
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(geolocation);
-            if (intent.resolveActivity(getPackageManager())!= null){
+            intent.setData(geoLocation);
+            if(intent.resolveActivity(getPackageManager()) != null){
                 startActivity(intent);
             }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    //TODO 4.3 override the methods in the Android Activity Lifecycle here
-    //TODO 4.4 for each of them, write a suitable string to display in the Logcat
 
     @Override
     protected void onRestart() {
-        Log.i("lifecycle","restart");
+        Log.i(TAG,"restart");
         super.onRestart();
     }
 
     @Override
     protected void onDestroy() {
-        Log.i("lifecycle","destroyed");
+        Log.i(TAG,"destroyed");
         super.onDestroy();
     }
 
     @Override
     protected void onStop() {
-        Log.i("lifecycle","stop");
+        Log.i(TAG,"stop");
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        Log.i("lifecycle","pause");
-        mPreferences = getSharedPreferences(sharedPrefFile,MODE_PRIVATE);
-        SharedPreferences.Editor prefeditor = mPreferences.edit();
-        prefeditor.putString(RATE_KEY,textViewExchangeRate.getText().toString());
-        prefeditor.apply();
+        Log.i(TAG,"pause");
+        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+        String exrate = textViewExchangeRate.getText().toString();
+        preferencesEditor.putString(RATE_KEY,exrate);
+
+        preferencesEditor.apply();
         super.onPause();
     }
 
     @Override
     protected void onResume() {
-        Log.i("lifecycle","resume");
+        Log.i(TAG,"resume");
         super.onResume();
     }
 
     @Override
     protected void onStart() {
-        Log.i("lifecycle","start");
+        Log.i(TAG,"start");
         super.onStart();
     }
-    //TODO 4.7 In onPause, get a reference to the SharedPreferences.Editor object
-    //TODO 4.8 store the exchange rate using the putString method with a key
 
 }

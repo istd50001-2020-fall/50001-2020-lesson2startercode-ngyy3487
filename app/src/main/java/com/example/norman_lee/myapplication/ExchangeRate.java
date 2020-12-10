@@ -39,7 +39,7 @@ public class ExchangeRate {
     BigDecimal calculateAmount(String foreign){
         BigDecimal foreigncurrency = new BigDecimal(foreign);
         BigDecimal homecurrency = foreigncurrency.multiply(this.exchangeRate);
-        return homecurrency.setScale(2,BigDecimal.ROUND_UP);
+        return homecurrency.setScale(2,BigDecimal.ROUND_UP); //2dp
     }
 
     void setPrecision(int precision){

@@ -22,29 +22,32 @@ public class ExampleUnitTest {
     @Test
     public void exchangeRateDefaultRate(){
         String defaultExchangeRate = "2.95000";
-        assertEquals( new BigDecimal(defaultExchangeRate), new ExchangeRate().getExchangeRate() );
+        assertEquals(new BigDecimal(defaultExchangeRate), new ExchangeRate().getExchangeRate());
     }
 
     @Test
-    public void exchangeRateNewRate(){
-        String newexchangerate = "37.00000";
-        assertEquals(new BigDecimal(newexchangerate), new ExchangeRate("37.00000"));
+    public void exchangeRate(){
+        String exchangeRate = "7.80000";
+        assertEquals(new BigDecimal(exchangeRate), new ExchangeRate(exchangeRate).getExchangeRate());
     }
 
     @Test
     public void exchangeRateHomeForeign(){
-        String home = "49";
-        String foreign = "7";
-        assertEquals(new BigDecimal("7.00000"), new ExchangeRate(home,foreign));
+        String home = "65.00000";
+        String foreign = "5.00000";
+        BigDecimal result = new BigDecimal("13.00000");
+        assertEquals(result, new ExchangeRate(home,foreign).getExchangeRate());
     }
 
     @Test
-    public void testCalcAmt(){
-        assertEquals(new BigDecimal("2.95000"), new ExchangeRate().calculateAmount("1"));
+    public void calculateAmount(){
+        ExchangeRate exrate = new ExchangeRate();
+        assertEquals("2.95",exrate.calculateAmount("1").toString());
     }
 
-    @Test
-    public void emptystr(){
-        assertEquals(new NumberFormatException(), new ExchangeRate(""));
+    @Test (expected = NumberFormatException.class)
+    public void emptyString(){
+        String exrate = "xhdx";
+        ExchangeRate exchangeRate = new ExchangeRate(exrate);
     }
 }

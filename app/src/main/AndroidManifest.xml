@@ -25,5 +25,7 @@
             android:label="@string/set_exchange_rate">
         </activity>
     </application>
-
+    <!--if need any permissions,put here
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>-->
 </manifest>
